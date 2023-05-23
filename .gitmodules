@@ -1,0 +1,3 @@
+[submodule "primaldimer_rs"]
+	path = primaldimer_rs
+	url = git@github.com:ChrisgKent/primaldimer_rs.git
