@@ -3,11 +3,11 @@ use pyo3::prelude::*;
 
 /// Formats the sum of two numbers as string.
 #[pyfunction]
-fn do_seqs_interact_py(seq1: &str, seq2: &str, t: i64) -> bool {
+fn do_seqs_interact_py(seq1: &str, seq2: &str, t: f64) -> bool {
     return do_seqs_interact(seq1, seq2, t);
 }
 #[pyfunction]
-fn do_pools_interact_py(pool1: Vec<&str>, pool2: Vec<&str>, t: i64) -> bool {
+fn do_pools_interact_py(pool1: Vec<&str>, pool2: Vec<&str>, t: f64) -> bool {
     return do_pools_interact(pool1, pool2, t);
 }
 
