@@ -8,4 +8,4 @@ crate-type = ["cdylib"]
 
 [dependencies]
 pyo3 = { version = "0.17.1", features = ["extension-module"] }
-primaldimer_rs = {path = "primaldimer_rs"}
+primaldimer_rs = {path = "primaldimer_rs_0.1.1"}
