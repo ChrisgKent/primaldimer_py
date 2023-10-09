@@ -97,7 +97,7 @@ dependencies = [
 
 [[package]]
 name = "primaldimer_py"
-version = "0.1.1"
+version = "1.0.1"
 dependencies = [
  "primaldimer_rs",
  "pyo3",
