@@ -7,7 +7,7 @@ use debruijn::dna_string::*;
 #[pyclass(subclass)]
 pub struct Kmer {
     #[pyo3(get)]
-    pub encodedseqs: Vec<Vec<u8>>,
+    pub encodedseqs: Vec<Vec<usize>>,
 }
 #[pymethods]
 impl Kmer {
@@ -20,9 +20,15 @@ impl Kmer {
             }
         }
         // Encode the sequences
-        let mut encoded_seqs: Vec<Vec<u8>> = seqs
+        let mut encoded_seqs: Vec<Vec<usize>> = seqs
             .iter()
-            .map(|s| DnaString::from_dna_string(s).to_bytes())
+            .map(|s| {
+                DnaString::from_dna_string(s)
+                    .to_bytes()
+                    .iter()
+                    .map(|&x| x as usize)
+                    .collect()
+            })
             .collect();
         // Sort and dedup the sequences
         encoded_seqs.sort_unstable();
@@ -32,10 +38,19 @@ impl Kmer {
 
         Kmer { encodedseqs }
     }
+
+    fn into_bytes(&self) -> Vec<Vec<u8>> {
+        // Return the sequences in bytes
+        self.encodedseqs
+            .iter()
+            .map(|s| s.iter().map(|&x| x as u8).collect())
+            .collect()
+    }
+
     #[getter]
     pub fn seqs(&self) -> Vec<String> {
         // Return the sequences in ATCG format
-        self.encodedseqs
+        self.into_bytes()
             .iter()
             .map(|s| DnaString::from_bytes(s).to_string())
             .collect()
@@ -45,6 +60,46 @@ impl Kmer {
         // Return the lengths of the sequences
         self.encodedseqs.iter().map(|s| s.len()).collect()
     }
+}
+
+fn do_kmers_interact(kmer1: &Kmer, kmer2: &Kmer, t: f64) -> bool {
+    // Check if two kmers interact
+    for seq1 in &kmer1.encodedseqs {
+        for seq2 in &kmer2.encodedseqs {
+            if primaldimer::does_seq1_extend(&seq1, &seq2, t)
+                | primaldimer::does_seq1_extend(&seq2, &seq1, t)
+            {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+#[pyfunction]
+fn which_kmers_pools_interact(
+    py: Python<'_>,
+    kmers1: Vec<Py<Kmer>>,
+    kmers2: Vec<Py<Kmer>>,
+    t: f64,
+    calc_all: bool,
+) -> PyResult<Vec<(Py<Kmer>, Py<Kmer>)>> {
+    // Interaction tuples
+    let mut interacting_kmers: Vec<(Py<Kmer>, Py<Kmer>)> = Vec::new();
+
+    // Check if two pools of kmers interact
+    for kmer1 in &kmers1 {
+        for kmer2 in &kmers2 {
+            if do_kmers_interact(&kmer1.as_ref(py).borrow(), &kmer2.as_ref(py).borrow(), t) {
+                interacting_kmers.push((kmer1.clone(), kmer2.clone()));
+                // Early return if we only want to know if any interact
+                if !calc_all {
+                    return Ok(interacting_kmers);
+                }
+            }
+        }
+    }
+    return Ok(interacting_kmers);
 }
 
 #[pyfunction]
@@ -75,6 +130,7 @@ fn primaldimer_py(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(do_pools_interact_py, m)?)?;
     m.add_function(wrap_pyfunction!(do_seqs_interact_py, m)?)?;
     m.add_function(wrap_pyfunction!(calc_at_offset_py, m)?)?;
+    m.add_function(wrap_pyfunction!(which_kmers_pools_interact, m)?)?;
     m.add_class::<Kmer>()?;
     Ok(())
 }

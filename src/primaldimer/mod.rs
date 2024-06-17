@@ -209,7 +209,7 @@ pub fn calc_at_offset(seq1: &[usize], seq2: &[usize], offset: i32) -> Option<f64
     return Some(dg_score);
 }
 
-fn does_seq1_extend(seq1: &[usize], seq2: &[usize], t: f64) -> bool {
+pub fn does_seq1_extend(seq1: &[usize], seq2: &[usize], t: f64) -> bool {
     let mut seq2_rev = seq2.to_owned();
     seq2_rev.reverse();
 
@@ -235,20 +235,6 @@ pub fn do_seqs_interact(seq1: &str, seq2: &str, t: f64) -> bool {
 }
 
 pub fn do_pools_interact(pool1: Vec<&str>, pool2: Vec<&str>, t: f64) -> bool {
-    // Encode the pools
-    let pool1_encoded: Vec<Vec<usize>> = pool1.iter().map(|s| encode_base(s)).collect();
-    let pool2_encoded: Vec<Vec<usize>> = pool2.iter().map(|s| encode_base(s)).collect();
-
-    // Will look for interactions between every seq in pool1 and pool2
-    for (s1, s2) in pool1_encoded.iter().cartesian_product(pool2_encoded.iter()) {
-        if does_seq1_extend(&s1, &s2, t) | does_seq1_extend(&s2, &s1, t) {
-            return true;
-        }
-    }
-    return false;
-}
-
-pub fn do_pools_interact_adv(pool1: &Vec<String>, pool2: &Vec<String>, t: f64) -> bool {
     // Encode the pools
     let pool1_encoded: Vec<Vec<usize>> = pool1.iter().map(|s| encode_base(s)).collect();
     let pool2_encoded: Vec<Vec<usize>> = pool2.iter().map(|s| encode_base(s)).collect();
