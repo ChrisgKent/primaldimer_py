@@ -44,6 +44,21 @@ pub fn encode_base(sequence: &str) -> Vec<usize> {
     return encoded_base;
 }
 
+pub fn decode_base(encoded_base: &[usize]) -> String {
+    let decoded_base = encoded_base
+        .iter()
+        .map(|base| match *base {
+            0 => "A",
+            3 => "T",
+            1 => "C",
+            2 => "G",
+            _ => panic!("NON STANDRD BASE found in {:?}", encoded_base),
+        })
+        .collect::<Vec<&str>>()
+        .join("");
+    return decoded_base;
+}
+
 fn calc_dangling_ends_stabilty(
     seq1: &[usize],
     seq2: &[usize],
@@ -422,5 +437,11 @@ mod tests {
             &encode_base(s2),
             threshold,
         ));
+    }
+    #[test]
+    fn test_encode_decode() {
+        // Test round trip encoding and decoding
+        let seq = "CTCTTGTAGATCTGTTCTCTAAACGAACTTT";
+        assert_eq!(decode_base(&encode_base(seq)), seq);
     }
 }

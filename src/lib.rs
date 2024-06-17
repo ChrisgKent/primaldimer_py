@@ -2,8 +2,6 @@ mod primaldimer;
 
 use pyo3::prelude::*;
 
-use debruijn::dna_string::*;
-
 #[pyclass(subclass)]
 pub struct Kmer {
     #[pyo3(get)]
@@ -20,16 +18,8 @@ impl Kmer {
             }
         }
         // Encode the sequences
-        let mut encoded_seqs: Vec<Vec<usize>> = seqs
-            .iter()
-            .map(|s| {
-                DnaString::from_dna_string(s)
-                    .to_bytes()
-                    .iter()
-                    .map(|&x| x as usize)
-                    .collect()
-            })
-            .collect();
+        let mut encoded_seqs: Vec<Vec<usize>> =
+            seqs.iter().map(|s| primaldimer::encode_base(&s)).collect();
         // Sort and dedup the sequences
         encoded_seqs.sort_unstable();
         encoded_seqs.dedup();
@@ -50,9 +40,9 @@ impl Kmer {
     #[getter]
     pub fn seqs(&self) -> Vec<String> {
         // Return the sequences in ATCG format
-        self.into_bytes()
+        self.encodedseqs
             .iter()
-            .map(|s| DnaString::from_bytes(s).to_string())
+            .map(|s| primaldimer::decode_base(s))
             .collect()
     }
 
